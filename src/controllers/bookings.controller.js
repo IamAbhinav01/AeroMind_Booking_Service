@@ -1,25 +1,33 @@
 const { StatusCodes } = require('http-status-codes');
 const { LoggerConfig } = require('../config');
-const { ErrorHandler } = require('../errors');
 const { sucessResponse, errorResponse } = require('../utils/responseFormatter');
 const { BookingService } = require('../services');
+
 const createBookings = async (req, res) => {
   try {
-    const data = await BookingService.createBooking({
+    const booking = await BookingService.createBooking({
       flightId: req.body.flightId,
       userId: req.body.userId,
       noOfSeats: req.body.noOfSeats,
     });
-    sucessResponse.data = 'data recieved & sent to service layer ';
-    LoggerConfig.info(`Sucessfullty sent data to service layer`);
-    return res.status(StatusCodes.ACCEPTED).json(sucessResponse);
+    console.log('sucesuffuly sent data from Controller layer -> service layer');
+    LoggerConfig.info(`Booking created successfully, id: ${booking.id}`);
+    return res.status(StatusCodes.CREATED).json({
+      ...sucessResponse,
+      message: 'Booking created successfully',
+      data: booking,
+    });
   } catch (error) {
-    errorResponse.error = error;
-    new ErrorHandler(errorResponse, StatusCodes.BAD_GATEWAY);
-    LoggerConfig.error(`Error while creating Bookings ,details:${error}`);
-    return res.status(StatusCodes.BAD_GATEWAY).json(errorResponse);
+    LoggerConfig.error(`Error while creating booking: ${error.message}`);
+
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({
+        ...errorResponse,
+        message: error.message || 'Something went wrong',
+        error: error,
+      });
   }
 };
-module.exports = {
-  createBookings,
-};
+
+module.exports = { createBookings };

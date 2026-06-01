@@ -21,6 +21,58 @@ class CrudRepository {
       throw error;
     }
   }
+  async get(modelId) {
+    try {
+      const response = await this.model.findByPk(modelId);
+      LoggerConfig.info(
+        `Successfully found data from the Database --> repository layer`
+      );
+      return response;
+    } catch (error) {
+      console.log('error occured while finding data from database');
+      LoggerConfig.error(
+        `error occured while finding data from database:${error}`
+      );
+      throw error;
+    }
+  }
+
+  async update(modelId, data) {
+    try {
+      const response = await this.model.update(data, {
+        where: {
+          id: modelId,
+        },
+      });
+      LoggerConfig.info(
+        `Successfully updated data in the Database --> repository layer`
+      );
+      return response;
+    } catch (error) {
+      console.log('error occured while finding data from database');
+      LoggerConfig.error(
+        `error occured while finding data from database:${error}`
+      );
+      throw error;
+    }
+  }
+
+  async getAll() {
+    try {
+      const response = await this.model.findAll();
+      LoggerConfig.info(
+        `Successfully retrieved all data from the Database --> repository layer`
+      );
+      return response;
+    } catch (error) {
+      console.log('error occured while finding data from database');
+      LoggerConfig.error(
+        `error occured while finding data from database:${error}`
+      );
+      throw error;
+    }
+  }
+
   async destroy(modelId) {
     try {
       const response = await this.model.destroy({
