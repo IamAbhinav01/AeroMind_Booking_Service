@@ -11,7 +11,6 @@ const createBookings = async (req, res) => {
       noOfSeats: req.body.noOfSeats,
     });
     sucessResponse.data = 'data recieved & sent to service layer ';
-    console.log('Controller data recieved : ', data);
     LoggerConfig.info(`Sucessfullty sent data to service layer`);
     return res.status(StatusCodes.ACCEPTED).json(sucessResponse);
   } catch (error) {
