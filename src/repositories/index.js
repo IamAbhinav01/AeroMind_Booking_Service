@@ -1,5 +1,5 @@
-const { AeroPlaneRepository } = require('./aeroplanes.repository');
+const { BookingRepository } = require('./bookings.repository');
 
 module.exports = {
-  AeroPlaneRepository,
+  BookingRepository,
 };
