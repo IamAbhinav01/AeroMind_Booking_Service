@@ -3,8 +3,10 @@ const { StatusCodes } = require('http-status-codes');
 const { LoggerConfig, ServerConfig } = require('../config');
 const { ErrorHandler } = require('../errors');
 const { BookingRepository } = require('../repositories');
-const db = require('../models');
+const { Enums } = require('../utils/common');
+const { BookingStatus } = Enums;
 
+const db = require('../models');
 const bookingRepository = new BookingRepository();
 
 const createBooking = async (request) => {
@@ -80,4 +82,73 @@ const createBooking = async (request) => {
   }
 };
 
-module.exports = { createBooking };
+const updateBooking = async (bookingId, status, t) => {
+  try {
+    const booking = await bookingRepository.update(bookingId, { status }, t);
+    return booking;
+  } catch (error) {
+    LoggerConfig.error(
+      `[Locking] Error in updateBooking — ${error.name}: ${error.message}`
+    );
+    throw new ErrorHandler(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+const makePayment = async (data) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const booking = await bookingRepository.lockBookings(data.bookingId, t);
+    if (!booking) {
+      await t.rollback();
+      throw new ErrorHandler('Booking not found', StatusCodes.NOT_FOUND);
+    }
+
+    if (booking.status === BookingStatus.CONFIRM) {
+      await t.rollback();
+      throw new ErrorHandler(
+        'Payment already completed',
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    if (booking.status === BookingStatus.CANCEL) {
+      await t.rollback();
+      throw new ErrorHandler(
+        'Booking is cancelled, cannot pay',
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    const updatedBooking = await updateBooking(
+      data.bookingId,
+      BookingStatus.CONFIRM,
+      t
+    );
+    await t.commit();
+    return updatedBooking;
+  } catch (error) {
+    try {
+      await t.rollback();
+      LoggerConfig.warn(`[Locking] Transaction rolled back: ${error.message}`);
+    } catch (rollbackError) {
+      LoggerConfig.error(`[Locking] Rollback failed: ${rollbackError.message}`);
+    }
+
+    if (error instanceof ErrorHandler) throw error;
+
+    let explanation = error.message;
+    let statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+
+    if (error.name === 'SequelizeValidationError') {
+      explanation = error.errors.map((err) => err.message).join(', ');
+      statusCode = StatusCodes.BAD_REQUEST;
+    }
+
+    LoggerConfig.error(
+      `[Locking] Error in generating booking — ${error.name}: ${error.message}`
+    );
+    throw new ErrorHandler(explanation, statusCode);
+  }
+};
+
+module.exports = { createBooking, updateBooking, makePayment };
