@@ -98,6 +98,8 @@ const makePayment = async (data) => {
   const t = await db.sequelize.transaction();
   try {
     const booking = await bookingRepository.lockBookings(data.bookingId, t);
+
+    console.log('booking object ', booking);
     if (!booking) {
       await t.rollback();
       throw new ErrorHandler('Booking not found', StatusCodes.NOT_FOUND);
@@ -118,6 +120,9 @@ const makePayment = async (data) => {
         StatusCodes.BAD_REQUEST
       );
     }
+
+    //checking if booking is taking too long to cnfrm
+    // const bookingTime =
 
     const updatedBooking = await updateBooking(
       data.bookingId,

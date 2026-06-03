@@ -1,7 +1,7 @@
 const CrudRepository = require('./crudOperations.repository');
 const { Bookings } = require('../models');
 const { LoggerConfig } = require('../config');
-const { LOCK } = require('sequelize');
+const { Transaction } = require('sequelize');
 
 class BookingRepository extends CrudRepository {
   constructor() {
@@ -25,13 +25,14 @@ class BookingRepository extends CrudRepository {
 
   async lockBookings(bookingId, t) {
     try {
-      await Bookings.findOne({
+      const booking = await Bookings.findOne({
         where: {
           id: bookingId,
         },
         transaction: t,
-        lock: LOCK.UPDATE,
+        lock: Transaction.LOCK.UPDATE,
       });
+      return booking;
     } catch (error) {
       console.log('error occured while locking booking');
       LoggerConfig.error(`error occured while locking booking ERROR:${error}`);
@@ -47,8 +48,8 @@ class BookingRepository extends CrudRepository {
           where: {
             id: modelId,
           },
-        },
-        { transaction: t }
+          transaction: t,
+        }
       );
       LoggerConfig.info(
         `Successfully updated data in the Database --> repository layer`
