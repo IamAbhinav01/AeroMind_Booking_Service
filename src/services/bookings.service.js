@@ -99,7 +99,7 @@ const makePayment = async (data) => {
   try {
     const booking = await bookingRepository.lockBookings(data.bookingId, t);
 
-    console.log('booking object ', booking);
+    // console.log('the complete booking details: ', booking.dataValues.createdAt);
     if (!booking) {
       await t.rollback();
       throw new ErrorHandler('Booking not found', StatusCodes.NOT_FOUND);
@@ -121,8 +121,24 @@ const makePayment = async (data) => {
       );
     }
 
+    if (Number(booking.dataValues.totalCost) !== Number(data.totalCost)) {
+      await t.rollback();
+      throw new ErrorHandler('Total cost mismatch', StatusCodes.BAD_REQUEST);
+    }
+
     //checking if booking is taking too long to cnfrm
-    // const bookingTime =
+    const bookingTime = new Date(booking.dataValues.createdAt).getTime();
+    const currentTime = new Date().getTime();
+    const timeDiff = (currentTime - bookingTime) / (1000 * 60); // in minutes
+    if (timeDiff > 5) {
+      await updateBooking(data.bookingId, BookingStatus.CANCEL, t);
+      await t.commit();
+
+      throw new ErrorHandler(
+        'Booking timed out and has been cancelled',
+        StatusCodes.NOT_FOUND
+      );
+    }
 
     const updatedBooking = await updateBooking(
       data.bookingId,
@@ -156,4 +172,4 @@ const makePayment = async (data) => {
   }
 };
 
-module.exports = { createBooking, updateBooking, makePayment };
+module.exports = { createBooking, makePayment };

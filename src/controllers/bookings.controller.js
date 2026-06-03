@@ -1,6 +1,9 @@
 const { StatusCodes } = require('http-status-codes');
 const { LoggerConfig } = require('../config');
-const { sucessResponse: successResponse, errorResponse } = require('../utils/responseFormatter');
+const {
+  sucessResponse: successResponse,
+  errorResponse,
+} = require('../utils/responseFormatter');
 const { BookingService } = require('../services');
 
 const createBookings = async (req, res) => {
@@ -38,8 +41,13 @@ const makePayment = async (req, res) => {
       userId: req.body.userId,
       bookingId: req.body.bookingId,
     });
-    successResponse.data = response;
-    return res.status(StatusCodes.ACCEPTED).json(successResponse);
+    console.log('sucesuffuly sent data from Controller layer -> service layer');
+    LoggerConfig.info(`Payment made successfully, id: ${response.id}`);
+    return res.status(StatusCodes.CREATED).json({
+      ...sucessResponse,
+      message: 'Payment made successfully',
+      data: response,
+    });
   } catch (error) {
     LoggerConfig.error(`Error while making payment: ${error.message}`);
 
