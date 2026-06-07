@@ -1,11 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
 const { LoggerConfig } = require('../config');
-const {
-  sucessResponse: successResponse,
-  errorResponse,
-} = require('../utils/responseFormatter');
-const { BookingService } = require('../services');
 
+const { BookingService } = require('../services');
+const { errorResponse, sucessResponse } = require('../utils/responseFormatter');
 const createBookings = async (req, res) => {
   try {
     const booking = await BookingService.createBooking({
@@ -60,4 +57,28 @@ const makePayment = async (req, res) => {
       });
   }
 };
-module.exports = { createBookings, makePayment };
+
+const cancelBooking = async (req, res) => {
+  try {
+    console.log('the request body is : ', req.body);
+    const response = await BookingService.cancelBooking(req.body.bookingId);
+    console.log('sucesuffuly sent data from Controller layer -> service layer');
+    LoggerConfig.info(`Booking cancelled successfully, id: ${response.id}`);
+    return res.status(StatusCodes.CREATED).json({
+      ...sucessResponse,
+      message: 'Booking cancelled successfully',
+      data: response,
+    });
+  } catch (error) {
+    LoggerConfig.error(`Error while cancelling booking: ${error.message}`);
+
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({
+        ...errorResponse,
+        message: error.message || 'Something went wrong',
+        error: error,
+      });
+  }
+};
+module.exports = { createBookings, makePayment, cancelBooking };
