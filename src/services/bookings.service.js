@@ -172,4 +172,68 @@ const makePayment = async (data) => {
   }
 };
 
-module.exports = { createBooking, makePayment };
+const cancelBooking = async (bookingId) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const bookingDetails = await bookingRepository.get(bookingId, t);
+
+    if (!bookingDetails) {
+      await t.rollback();
+      LoggerConfig.warn(
+        `[Locking] Booking ${bookingId} not found for cancellation`
+      );
+      throw new ErrorHandler('Booking not found', StatusCodes.NOT_FOUND);
+    }
+
+    if (bookingDetails.status === BookingStatus.CANCEL) {
+      await t.rollback();
+      LoggerConfig.warn(`[Locking] Booking ${bookingId} is already cancelled`);
+      throw new ErrorHandler(
+        'Booking is already cancelled.',
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    await axios.patch(
+      `${ServerConfig.FLIGHT_API}/${bookingDetails.flightId}/seats`,
+      {
+        seats: bookingDetails.noOfSeats,
+        dec: false,
+      }
+    );
+
+    const updatedBooking = await updateBooking(
+      bookingId,
+      BookingStatus.CANCEL,
+      t
+    );
+    LoggerConfig.info(
+      `[Locking] Booking ${bookingId} cancelled successfully and seats released`
+    );
+    await t.commit();
+    return updatedBooking;
+  } catch (error) {
+    try {
+      await t.rollback();
+      LoggerConfig.warn(`[Locking] Transaction rolled back: ${error.message}`);
+    } catch (rollbackError) {
+      LoggerConfig.error(`[Locking] Rollback failed: ${rollbackError.message}`);
+    }
+
+    if (error instanceof ErrorHandler) throw error;
+
+    let explanation = error.message;
+    let statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+
+    if (error.name === 'SequelizeValidationError') {
+      explanation = error.errors.map((err) => err.message).join(', ');
+      statusCode = StatusCodes.BAD_REQUEST;
+    }
+
+    LoggerConfig.error(
+      `[Locking] Error in cancelBooking — ${error.name}: ${error.message}`
+    );
+    throw new ErrorHandler(explanation, statusCode);
+  }
+};
+module.exports = { createBooking, makePayment, cancelBooking };

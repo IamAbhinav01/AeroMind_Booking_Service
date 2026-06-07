@@ -42,17 +42,29 @@ class BookingRepository extends CrudRepository {
 
   async update(modelId, data, t) {
     try {
-      const response = await this.model.update(
-        data,
-        {
-          where: {
-            id: modelId,
-          },
-          transaction: t,
-        }
-      );
+      const response = await this.model.update(data, {
+        where: {
+          id: modelId,
+        },
+        transaction: t,
+      });
       LoggerConfig.info(
         `Successfully updated data in the Database --> repository layer`
+      );
+      return response;
+    } catch (error) {
+      console.log('error occured while finding data from database');
+      LoggerConfig.error(
+        `error occured while finding data from database:${error}`
+      );
+      throw error;
+    }
+  }
+  async get(modelId, t) {
+    try {
+      const response = await this.model.findByPk(modelId, { transaction: t });
+      LoggerConfig.info(
+        `Successfully found data from the Database --> repository layer`
       );
       return response;
     } catch (error) {
