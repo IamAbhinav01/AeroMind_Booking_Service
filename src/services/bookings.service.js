@@ -236,4 +236,10 @@ const cancelBooking = async (bookingId) => {
     throw new ErrorHandler(explanation, statusCode);
   }
 };
+const cancelOldBooking = async () => {
+  /* like a automatic timer which cancels old bookings
+  can be implemented using default sql events or using node-cron to run a script at regular intervals to check for old bookings and cancel them,
+  but event requires configuring it so lets go with node-cron 
+  */
+};
 module.exports = { createBooking, makePayment, cancelBooking };
