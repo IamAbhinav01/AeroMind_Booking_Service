@@ -237,9 +237,23 @@ const cancelBooking = async (bookingId) => {
   }
 };
 const cancelOldBooking = async () => {
-  /* like a automatic timer which cancels old bookings
-  can be implemented using default sql events or using node-cron to run a script at regular intervals to check for old bookings and cancel them,
-  but event requires configuring it so lets go with node-cron 
-  */
+  try {
+    const currentTime = new Date(Date.now() - 5 * 60 * 1000); // 5 minutes ago
+    const response = await bookingRepository.cancelOldBooking(currentTime);
+    LoggerConfig.info(
+      `[Cron] Old INITIATED bookings cancelled successfully. Updated count: ${response[0]}`
+    );
+    return response;
+  } catch (error) {
+    LoggerConfig.error(
+      `[Cron] Error in cancelOldBooking — ${error.name}: ${error.message}`
+    );
+    throw new ErrorHandler(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
 };
-module.exports = { createBooking, makePayment, cancelBooking };
+module.exports = {
+  createBooking,
+  makePayment,
+  cancelBooking,
+  cancelOldBooking,
+};

@@ -1,5 +1,6 @@
 const express = require('express');
 const { ServerConfig, LoggerConfig } = require('./config');
+const { Crons } = require('./utils/common');
 const apiRoutes = require('./routes');
 const app = express();
 
@@ -10,4 +11,6 @@ app.use('/api', apiRoutes);
 app.listen(ServerConfig.PORT, () => {
   console.log(`server started at port: ${ServerConfig.PORT}`);
   LoggerConfig.info(`server started at port: ${ServerConfig.PORT}`);
+
+  Crons.scheduleOldBookingCancellation();
 });

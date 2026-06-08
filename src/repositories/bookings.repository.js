@@ -1,7 +1,8 @@
 const CrudRepository = require('./crudOperations.repository');
 const { Bookings } = require('../models');
 const { LoggerConfig } = require('../config');
-const { Transaction } = require('sequelize');
+const { Transaction, Op } = require('sequelize');
+const { BookingStatus } = require('../utils/common/ennum');
 
 class BookingRepository extends CrudRepository {
   constructor() {
@@ -62,7 +63,7 @@ class BookingRepository extends CrudRepository {
   }
   async get(modelId, t) {
     try {
-      const response = await this.model.findByPk(modelId, { transaction: t });
+      const response = await Bookings.findByPk(modelId, { transaction: t });
       LoggerConfig.info(
         `Successfully found data from the Database --> repository layer`
       );
@@ -74,6 +75,39 @@ class BookingRepository extends CrudRepository {
       );
       throw error;
     }
+  }
+
+  async cancelOldBooking(time) {
+    try {
+      const response = await Bookings.update(
+        {
+          status: BookingStatus.CANCEL,
+        },
+        {
+          where: {
+            status: BookingStatus.INITIATED,
+            createdAt: {
+              [Op.lt]: time,
+            },
+          },
+        }
+      );
+      LoggerConfig.info(
+        `Successfully cancelled old INITIATED bookings from the Database --> repository layer`
+      );
+      return response;
+    } catch (error) {
+      console.log('error occured while finding data from database');
+      LoggerConfig.error(
+        `error occured while finding data from database:${error}`
+      );
+      throw error;
+    }
+    /*  UPDATE bookings
+        SET status = 'CANCEL'
+        WHERE status = 'INITIATED'
+        AND createdAt < time; 
+    */
   }
 }
 

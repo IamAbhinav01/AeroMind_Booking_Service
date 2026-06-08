@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "http-status-codes": "^2.3.0",
     "mysql2": "^3.22.3",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
