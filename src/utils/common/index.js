@@ -3,4 +3,5 @@ module.exports = {
   get Crons() {
     return require('./crons');
   },
+  BookingMiddlware: require('./bookingMiddleware.constant'),
 };

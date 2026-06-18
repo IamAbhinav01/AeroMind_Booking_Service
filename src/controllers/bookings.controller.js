@@ -25,7 +25,11 @@ const createBookings = async (req, res) => {
       .json({
         ...errorResponse,
         message: error.message || 'Something went wrong',
-        error: error,
+        error: {
+          statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Something went wrong',
+          info: error.info || error.message || '',
+        },
       });
   }
 };
@@ -53,7 +57,11 @@ const makePayment = async (req, res) => {
       .json({
         ...errorResponse,
         message: error.message || 'Something went wrong',
-        error: error,
+        error: {
+          statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Something went wrong',
+          info: error.info || error.message || '',
+        },
       });
   }
 };
@@ -77,7 +85,11 @@ const cancelBooking = async (req, res) => {
       .json({
         ...errorResponse,
         message: error.message || 'Something went wrong',
-        error: error,
+        error: {
+          statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+          message: error.message || 'Something went wrong',
+          info: error.info || error.message || '',
+        },
       });
   }
 };
