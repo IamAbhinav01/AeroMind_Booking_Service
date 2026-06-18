@@ -1,4 +1,4 @@
-const { default: axios } = require('axios');
+const axios = require('axios');
 const { StatusCodes } = require('http-status-codes');
 const { LoggerConfig, ServerConfig } = require('../config');
 const { ErrorHandler } = require('../errors');
