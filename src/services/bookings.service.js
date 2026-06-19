@@ -156,8 +156,36 @@ const makePayment = async (data) => {
         totalCost: booking.totalCost,
         noOfSeats: booking.noOfSeats,
         recepientEmail: data.email,
-        subject: 'Flight Booking Confirmed',
+        subject: '✈️ Flight Booking Confirmed!',
         text: `Your booking (ID: ${data.bookingId}) has been confirmed. Total Cost: ${booking.totalCost}. Number of seats: ${booking.noOfSeats}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #2d2d2d; line-height: 1.5;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 16px; background: #ffffff;">
+              <h1 style="margin: 0 0 16px; color: #0f61ff; font-size: 28px;">Flight Booking Confirmed!</h1>
+              <p style="margin: 0 0 24px; font-size: 16px; color: #4b5563;">Hello, your booking has been successfully confirmed. Here are the details:</p>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb; background: #f9fafb; font-weight: bold;">Booking ID</td>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb;">${data.bookingId}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb; background: #f9fafb; font-weight: bold;">Flight ID</td>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb;">${booking.flightId}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb; background: #f9fafb; font-weight: bold;">Seats Booked</td>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb;">${booking.noOfSeats}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb; background: #f9fafb; font-weight: bold;">Total Cost</td>
+                  <td style="padding: 12px 16px; border: 1px solid #e5e7eb;">₹${booking.totalCost}</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px; font-size: 16px; color: #4b5563;">Thank you for choosing AeroMind. We wish you a smooth and pleasant journey!</p>
+              <p style="margin: 0; font-size: 14px; color: #9ca3af;">If you have any questions, reply to this email or contact our support team.</p>
+            </div>
+          </div>
+        `,
       });
     } catch (notificationError) {
       console.log(
