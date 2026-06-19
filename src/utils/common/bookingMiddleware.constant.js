@@ -4,4 +4,5 @@ module.exports = {
   NO_OF_SEATS: 'noOfSeats',
   TOTAL_COST: 'totalCost',
   BOOKING_ID: 'bookingId',
+  EMAIL: 'email',
 };

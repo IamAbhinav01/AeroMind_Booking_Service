@@ -8,6 +8,7 @@ const {
   NO_OF_SEATS,
   FLIGHT_ID,
   TOTAL_COST,
+  EMAIL,
 } = require('../utils/common/bookingMiddleware.constant');
 
 const creationMiddleware = async (req, res, next) => {
@@ -33,7 +34,7 @@ const creationMiddleware = async (req, res, next) => {
 
 const paymentMiddlware = async (req, res, next) => {
   const body = req.body || {};
-  const requiredFields = [TOTAL_COST, USER_ID, BOOKING_ID];
+  const requiredFields = [TOTAL_COST, USER_ID, BOOKING_ID, EMAIL];
   for (const field of requiredFields) {
     if (!body[field]) {
       const message = `Booking ${field} is not defined`;

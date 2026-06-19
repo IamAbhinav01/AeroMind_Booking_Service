@@ -7,6 +7,7 @@ const { Enums } = require('../utils/common');
 const { BookingStatus } = Enums;
 
 const db = require('../models');
+const { sendPayload } = require('../config/RabbitMQ.config');
 const bookingRepository = new BookingRepository();
 
 const createBooking = async (request) => {
@@ -146,6 +147,26 @@ const makePayment = async (data) => {
       t
     );
     await t.commit();
+    try {
+      await sendPayload({
+        userId: data.userId,
+        bookingId: data.bookingId,
+        flightId: booking.flightId,
+        status: BookingStatus.CONFIRM,
+        totalCost: booking.totalCost,
+        noOfSeats: booking.noOfSeats,
+        recepientEmail: data.email,
+        subject: 'Flight Booking Confirmed',
+        text: `Your booking (ID: ${data.bookingId}) has been confirmed. Total Cost: ${booking.totalCost}. Number of seats: ${booking.noOfSeats}`,
+      });
+    } catch (notificationError) {
+      console.log(
+        'Warning: Failed to send notification:',
+        notificationError.message
+      );
+      // Don't fail the payment if notification fails - it's already confirmed!
+    }
+
     return updatedBooking;
   } catch (error) {
     try {
