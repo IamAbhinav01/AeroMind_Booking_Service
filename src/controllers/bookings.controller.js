@@ -41,6 +41,7 @@ const makePayment = async (req, res) => {
       totalCost: req.body.totalCost,
       userId: req.body.userId,
       bookingId: req.body.bookingId,
+      email: req.body.email,
     });
     console.log('sucesuffuly sent data from Controller layer -> service layer');
     LoggerConfig.info(`Payment made successfully, id: ${response.id}`);

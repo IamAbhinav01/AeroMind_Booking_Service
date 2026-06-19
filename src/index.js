@@ -2,15 +2,18 @@ const express = require('express');
 const { ServerConfig, LoggerConfig } = require('./config');
 const { Crons } = require('./utils/common');
 const apiRoutes = require('./routes');
+const { connectRabitMQ } = require('./config/RabbitMQ.config');
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRoutes);
-app.listen(ServerConfig.PORT, () => {
+app.listen(ServerConfig.PORT, async () => {
   console.log(`server started at port: ${ServerConfig.PORT}`);
   LoggerConfig.info(`server started at port: ${ServerConfig.PORT}`);
 
   Crons.scheduleOldBookingCancellation();
+  await connectRabitMQ();
+  LoggerConfig.info('RabitMQ started ..');
 });
