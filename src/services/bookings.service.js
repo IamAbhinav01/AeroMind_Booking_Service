@@ -13,6 +13,16 @@ const bookingRepository = new BookingRepository();
 const createBooking = async (request) => {
   const t = await db.sequelize.transaction();
   try {
+    // ── Fast pre-flight guard (NOT a correctness guarantee) ──────────────────
+    // This GET is a cheap early-rejection to avoid wasting DB transactions on
+    // obviously impossible requests (e.g. 500 seats on a 200-seat plane).
+    // It is NOT race-condition-safe — two concurrent requests can both pass
+    // this check simultaneously.
+    //
+    // The REAL atomic seat availability check happens inside the Backend Service's
+    // `updateSeats()` which holds a `SELECT ... FOR UPDATE` row-level lock.
+    // That lock makes the check + decrement a single atomic operation, preventing
+    // any overbooking regardless of concurrency.
     const response = await axios.get(
       `${ServerConfig.FLIGHT_API}/${request.flightId}`
     );
@@ -27,7 +37,7 @@ const createBooking = async (request) => {
     }
 
     LoggerConfig.info(
-      `[Locking] Fetched flight ${request.flightId}: ${flightDetails.totalSeats} seats available`
+      `[Booking] Pre-flight guard passed for flight ${request.flightId}: ${flightDetails.totalSeats} seats visible`
     );
 
     const totalCost = request.noOfSeats * flightDetails.price;
