@@ -36,6 +36,15 @@ const createBooking = async (request) => {
       );
     }
 
+    const flightDeparture = new Date(flightDetails.departureTime);
+    if (flightDeparture < new Date()) {
+      await t.rollback();
+      throw new ErrorHandler(
+        'Cannot book a flight that has already departed.',
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
     LoggerConfig.info(
       `[Booking] Pre-flight guard passed for flight ${request.flightId}: ${flightDetails.totalSeats} seats visible`
     );
