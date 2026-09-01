@@ -8,6 +8,10 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get(['/', '/health'], (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'aeromind-booking' });
+});
+
 app.use('/api', apiRoutes);
 app.listen(ServerConfig.PORT, async () => {
   console.log(`server started at port: ${ServerConfig.PORT}`);
